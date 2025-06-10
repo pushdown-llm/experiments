@@ -1,0 +1,6 @@
+o_orderpriority;Count
+1-URGENT       ;300343
+2-HIGH         ;300091
+3-MEDIUM       ;298723
+4-NOT SPECIFIED;300254
+5-LOW          ;300589

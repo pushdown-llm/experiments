@@ -1,0 +1,5 @@
+o_orderkey;o_custkey;o_orderstatus;o_totalprice;o_orderdate;o_orderpriority;o_clerk;o_shippriority;o_comment
+646629;85397;F;280161,3;1992/11/04 00:00:00.000;3-MEDIUM       ;Clerk#000000744;0;s nag idly across the slyly express accounts. careful ideas haggle carefu      
+646657;112387;F;259715,29;1994/07/12 00:00:00.000;3-MEDIUM       ;Clerk#000000275;0;gular accounts across the furiously special packages sleep slyly ironic reque  
+646660;146386;F;103846,52;1994/06/28 00:00:00.000;3-MEDIUM       ;Clerk#000000973;0;ithely bold deposits. depen                                                    
+646693;148144;O;228142,5;1995/08/18 00:00:00.000;3-MEDIUM       ;Clerk#000000783;0;gainst the even accounts. fluffily special d                                   
