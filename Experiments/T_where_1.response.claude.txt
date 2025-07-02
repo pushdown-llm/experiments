@@ -1,0 +1,260 @@
+////////// MODEL: Claude Sonnet 4
+////////// URL: 
+
+Looking at this ETL transformation, I can see it's performing a simple filter operation on the orders table. Let me provide you with the optimized SQL query and performance recommendations.Optimized SQL Query with Performance EnhancementsCode 
+
+```
+-- Optimized SQL Query (Push-down to PostgreSQL)
+-- This query combines the table input and filter operations into a single SQL statement
+
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM';
+
+-- Performance Optimization Recommendations:
+
+-- 1. Create an index on o_orderpriority for faster filtering
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority 
+ON "public".orders (o_orderpriority);
+
+-- 2. If you frequently query by date ranges, add a composite index
+CREATE INDEX IF NOT EXISTS idx_orders_priority_date 
+ON "public".orders (o_orderpriority, o_orderdate);
+
+-- 3. If this query is part of a larger analytical workload, consider a covering index
+-- that includes all frequently accessed columns
+CREATE INDEX IF NOT EXISTS idx_orders_priority_covering 
+ON "public".orders (o_orderpriority) 
+INCLUDE (o_orderkey, o_custkey, o_totalprice, o_orderdate);
+
+-- 4. For very large tables, consider partitioning by o_orderdate
+-- Example partition creation (adjust date ranges as needed):
+/*
+CREATE TABLE orders_partition_2023 PARTITION OF "public".orders
+FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE orders_partition_2024 PARTITION OF "public".orders
+FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+*/
+
+-- 5. Query with additional optimizations for large datasets
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM'
+-- Add LIMIT if you don't need all results at once
+-- LIMIT 10000
+-- Add ORDER BY if you need consistent ordering
+-- ORDER BY o_orderdate DESC, o_orderkey
+;
+```
+
+Now let me provide additional PostgreSQL-specific optimization code:PostgreSQL Performance Optimization CodeCode -- PostgreSQL Performance Optimization Script
+
+```
+-- PostgreSQL Performance Optimization Script
+
+-- 1. Analyze table statistics (run after creating indexes)
+ANALYZE "public".orders;
+
+-- 2. Check current query performance
+EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) 
+SELECT
+    o_orderkey, o_custkey, o_orderstatus, o_totalprice,
+    o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM';
+
+-- 3. Monitor index usage
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan,
+    idx_tup_read,
+    idx_tup_fetch
+FROM pg_stat_user_indexes 
+WHERE tablename = 'orders'
+ORDER BY idx_scan DESC;
+
+-- 4. Check for unused indexes (run periodically)
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan,
+    pg_size_pretty(pg_relation_size(indexrelid)) as size
+FROM pg_stat_user_indexes 
+WHERE tablename = 'orders' AND idx_scan = 0;
+
+-- 5. PostgreSQL configuration optimizations
+-- Add these to postgresql.conf for better performance:
+
+/*
+# Memory settings (adjust based on available RAM)
+shared_buffers = 256MB                  # 25% of RAM for dedicated server
+effective_cache_size = 1GB              # 75% of RAM
+work_mem = 4MB                          # For sorting/hashing operations
+maintenance_work_mem = 64MB             # For maintenance operations
+
+# Query planner settings
+random_page_cost = 1.1                  # For SSD storage
+effective_io_concurrency = 200          # For SSD storage
+max_worker_processes = 8                # Number of CPU cores
+max_parallel_workers_per_gather = 4     # Parallel query execution
+max_parallel_workers = 8                # Total parallel workers
+
+# WAL settings for better write performance
+wal_buffers = 16MB
+checkpoint_completion_target = 0.9
+*/
+
+-- 6. Connection pooling optimization
+-- Use connection pooling (PgBouncer recommended) with these settings:
+/*
+pool_mode = transaction
+max_client_conn = 100
+default_pool_size = 20
+reserve_pool_size = 5
+*/
+
+-- 7. Vacuum and maintenance
+-- Set up automatic vacuum (usually enabled by default)
+-- For heavy write workloads, consider:
+/*
+autovacuum = on
+autovacuum_max_workers = 3
+autovacuum_vacuum_threshold = 50
+autovacuum_analyze_threshold = 50
+*/
+
+-- 8. Query-specific optimizations
+-- If you need to export large result sets, use COPY instead of SELECT:
+COPY (
+    SELECT
+        o_orderkey, o_custkey, o_orderstatus, o_totalprice,
+        o_orderdate, o_orderpriority, o_clerk, o_shippriority, o_comment
+    FROM "public".orders
+    WHERE o_orderpriority = '3-MEDIUM'
+) TO '/path/to/output/file.csv' 
+WITH (FORMAT CSV, HEADER true, DELIMITER ';');
+
+-- 9. Monitoring query performance over time
+-- Create a view for monitoring slow queries:
+CREATE OR REPLACE VIEW slow_queries AS
+SELECT 
+    query,
+    calls,
+    total_time,
+    mean_time,
+    rows,
+    100.0 * shared_blks_hit / nullif(shared_blks_hit + shared_blks_read, 0) AS hit_percent
+FROM pg_stat_statements 
+WHERE query LIKE '%orders%' AND query LIKE '%orderpriority%'
+ORDER BY total_time DESC;
+
+-- 10. Table statistics for query planning
+-- Ensure PostgreSQL has up-to-date statistics:
+SET default_statistics_target = 100;  -- Increase for better estimates
+ANALYZE "public".orders;
+```
+    
+Summary
+The ETL transformation you provided can be optimized by pushing the filter operation down to the PostgreSQL database level. Here's what I've provided:
+Main Optimizations:
+
+Query Push-down: Combined the table input and filter steps into a single SQL query with a WHERE clause, eliminating the need to transfer all data before filtering.
+Indexing Strategy:
+
+Basic index on o_orderpriority for the filter condition
+Composite index for date-range queries
+Covering index to avoid table lookups
+
+
+PostgreSQL-specific Optimizations:
+
+Configuration tuning for memory and parallel processing
+COPY command for faster bulk exports
+Monitoring queries for performance tracking
+
+
+
+Expected Performance Improvements:
+
+Significant reduction in data transfer between database and ETL tool
+Faster query execution with proper indexing
+Better resource utilization with optimized PostgreSQL settings
+
+Implementation Notes:
+
+Test the indexes on a development environment first
+Monitor query execution plans using EXPLAIN ANALYZE
+Adjust memory settings based on your server specifications
+Consider using COPY TO FILE instead of the ETL output step for large datasets
+
+The optimized approach should dramatically reduce execution time, especially for large tables, by leveraging PostgreSQL's query optimization capabilities rather than processing data in the ETL tool.
+
+
+
+
+
+
+////////// EXECUTED QUERY:
+
+-- 1. Create an index on o_orderpriority for faster filtering
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority 
+ON "public".orders (o_orderpriority);
+
+-- 2. If you frequently query by date ranges, add a composite index
+CREATE INDEX IF NOT EXISTS idx_orders_priority_date 
+ON "public".orders (o_orderpriority, o_orderdate);
+
+-- 3. If this query is part of a larger analytical workload, consider a covering index
+-- that includes all frequently accessed columns
+CREATE INDEX IF NOT EXISTS idx_orders_priority_covering 
+ON "public".orders (o_orderpriority) 
+INCLUDE (o_orderkey, o_custkey, o_totalprice, o_orderdate);
+
+EXPLAIN
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM'
+
+
+////////// EXECUTION PLAN:
+
+Bitmap Heap Scan on orders  (cost=3422.11..33362.74 rows=305250 width=107)
+  Recheck Cond: (o_orderpriority = '3-MEDIUM'::bpchar)
+  ->  Bitmap Index Scan on idx_orders_orderpriority  (cost=0.00..3345.80 rows=305250 width=0)
+        Index Cond: (o_orderpriority = '3-MEDIUM'::bpchar)
+
+////////// NOTES:
+
+Wspomnienie o partycjonowaniu tabeli.
+Dużo kodu do monitorowania stanu bazy danych. Ekspoer bezpośrednio do pliku. 

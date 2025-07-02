@@ -1,0 +1,63 @@
+////////// MODEL: Gemini 2.5 Pro
+////////// URL: https://g.co/gemini/share/2deccbd05bf9
+
+Of course. Here is the SQL query that can be pushed down to the Postgres data source, along with a suggested optimization.
+
+SQL Query
+This query combines the data selection from the Table input step and the filtering logic from the Filter rows step into a single operation. Pushing the WHERE clause down to the database is more efficient as it reduces the amount of data transferred over the network.
+
+SQL
+
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM
+    "public".orders
+WHERE
+    o_orderpriority = '3-MEDIUM';
+Optimizations
+To speed up the execution of this query, especially on a large orders table, you should create an index on the o_orderpriority column. This allows the database to quickly locate the rows matching the filter condition without having to perform a full table scan.
+
+Here is the SQL command to create the index in Postgres:
+
+SQL
+
+CREATE INDEX idx_orders_orderpriority ON "public".orders (o_orderpriority);
+
+
+
+////////// EXECUTED QUERY:
+
+CREATE INDEX idx_orders_orderpriority ON "public".orders (o_orderpriority);
+
+EXPLAIN 
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM
+    "public".orders
+WHERE
+    o_orderpriority = '3-MEDIUM';
+
+
+////////// EXECUTION PLAN:
+
+Bitmap Heap Scan on orders  (cost=3291.83..33097.83 rows=293600 width=107)
+  Recheck Cond: (o_orderpriority = '3-MEDIUM'::bpchar)
+  ->  Bitmap Index Scan on idx_orders_orderpriority  (cost=0.00..3218.43 rows=293600 width=0)
+        Index Cond: (o_orderpriority = '3-MEDIUM'::bpchar)
+
