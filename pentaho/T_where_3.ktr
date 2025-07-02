@@ -795,7 +795,7 @@ FROM "public".orders
       </output>
     </remotesteps>
     <GUI>
-      <xloc>80</xloc>
+      <xloc>112</xloc>
       <yloc>144</yloc>
       <draw>Y</draw>
     </GUI>
