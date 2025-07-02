@@ -1,5 +1,5 @@
 ////////// MODEL: Claude Sonnet 4
-////////// URL: 
+////////// URL: https://claude.ai/public/artifacts/57d87d93-d486-4ccf-b371-ad44582bd826
 
 Looking at this ETL transformation, I can see it's performing a simple filter operation on the orders table. Let me provide you with the optimized SQL query and performance recommendations.Optimized SQL Query with Performance EnhancementsCode 
 
