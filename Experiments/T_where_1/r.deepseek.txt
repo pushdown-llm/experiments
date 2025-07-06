@@ -1,0 +1,42 @@
+# SQL Query for Pushdown to Postgres
+
+The ETL transformation selects orders with priority '3-MEDIUM' from the orders table. Here's the optimized SQL query that can be pushed down to the Postgres source:
+
+```sql
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM'
+```
+
+## Optimization Techniques
+
+1. **Index Creation** (if allowed, though you mentioned not to change original tables):
+```sql
+CREATE INDEX idx_orders_orderpriority ON "public".orders(o_orderpriority);
+```
+
+2. **Query Optimization**:
+```sql
+-- Add LIMIT if you only need a sample (not shown in original transformation)
+-- SELECT ... FROM ... WHERE o_orderpriority = '3-MEDIUM' LIMIT 1000;
+
+-- For large tables, consider partitioning (though you mentioned not to change original tables)
+-- CREATE TABLE orders_partitioned (...) PARTITION BY LIST (o_orderpriority);
+```
+
+3. **Execution Plan Analysis**:
+```sql
+EXPLAIN ANALYZE
+SELECT /* your query here */;
+```
+
+The pushdown query performs the filtering at the source database, reducing network traffic and processing load on the ETL server.

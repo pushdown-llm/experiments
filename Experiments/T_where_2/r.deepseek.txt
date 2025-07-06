@@ -1,0 +1,47 @@
+# SQL Query for Pushdown to Postgres
+
+The transformation filters orders from 1997. Here's the optimized SQL query that can be pushed down to the Postgres source:
+
+```sql
+SELECT
+  o_orderkey,
+  o_custkey,
+  o_orderstatus,
+  o_totalprice,
+  o_orderdate,
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM "public".orders
+WHERE o_orderdate >= DATE '1997-01-01' 
+  AND o_orderdate <= DATE '1997-12-31'
+```
+
+## Optimization Recommendations
+
+1. **Index Optimization** (if you can create indexes - though you mentioned not to change original tables):
+```sql
+CREATE INDEX IF NOT EXISTS idx_orders_orderdate ON "public".orders(o_orderdate);
+```
+
+2. **Query Optimization**:
+```sql
+-- Alternative date range syntax that might be more efficient
+SELECT
+  o_orderkey,
+  o_custkey,
+  o_orderstatus,
+  o_totalprice,
+  o_orderdate,
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM "public".orders
+WHERE o_orderdate BETWEEN DATE '1997-01-01' AND DATE '1997-12-31'
+```
+
+3. **For large tables**, consider partitioning by year (though this would require table changes which you prohibited).
+
+The pushed-down query eliminates the need for the FilterRows step in the ETL process by performing the filtering at the source.

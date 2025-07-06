@@ -132,11 +132,6 @@ def process_file(input_file, output_file=None):
         f.write(result)
     
     print(f"Extracted elements saved to {output_file}")
-    print("- Original quotes and special characters preserved")
-    print("- Kept only order and step elements")
-    print("- Removed GUI elements")
-    print("- Filtered value-meta to keep only type, name, length, and precision")
-    print("- Removed all empty elements")
 
 if __name__ == "__main__":
     import sys

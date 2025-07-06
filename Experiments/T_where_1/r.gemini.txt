@@ -1,0 +1,31 @@
+### SQL Query
+
+This query combines the data selection and filtering steps into a single operation that can be executed directly by the Postgres database. Using `TRIM` makes the comparison robust against trailing whitespace.
+
+```sql
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM
+    "public".orders
+WHERE
+    TRIM(o_orderpriority) = '3-MEDIUM';
+
+```
+
+-----
+
+### Query Optimization
+
+To accelerate the query, you can create an index on the filtered column. Since the query uses the `TRIM` function, a function-based index is required for the database to use it effectively. This does not modify the original table data or structure.
+
+```sql
+CREATE INDEX idx_orders_o_orderpriority_trimmed ON "public".orders (TRIM(o_orderpriority));
+```

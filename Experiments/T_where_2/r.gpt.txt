@@ -1,0 +1,61 @@
+Here’s the **pushdown SQL query** for your Postgres source:
+
+```sql
+SELECT
+  o_orderkey,
+  o_custkey,
+  o_orderstatus,
+  o_totalprice,
+  o_orderdate,
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM
+  public.orders
+WHERE
+  o_orderdate >= DATE '1997-01-01'
+  AND o_orderdate <= DATE '1997-12-31'
+;
+```
+
+---
+
+### **Optimizations using only SQL (no DB config changes)**
+
+✅ **Create an index to speed up the filter:**
+Use this before running the transformation to improve scan performance:
+
+```sql
+CREATE INDEX idx_orders_orderdate_1997
+ON public.orders (o_orderdate)
+WHERE o_orderdate BETWEEN DATE '1997-01-01' AND DATE '1997-12-31';
+```
+
+This is a **partial index** — it optimizes only rows in 1997, reducing index size and improving scan efficiency for this ETL.
+
+✅ **Use EXPLAIN to verify the plan:**
+
+```sql
+EXPLAIN ANALYZE
+SELECT
+  o_orderkey,
+  o_custkey,
+  o_orderstatus,
+  o_totalprice,
+  o_orderdate,
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM
+  public.orders
+WHERE
+  o_orderdate >= DATE '1997-01-01'
+  AND o_orderdate <= DATE '1997-12-31';
+```
+
+---
+
+**Keep everything in SQL. No DB parameter changes.**
+**Push filter to source, avoid transferring unneeded rows.** ✅

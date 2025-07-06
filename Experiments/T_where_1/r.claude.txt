@@ -1,0 +1,43 @@
+Looking at this ETL transformation, I can see it's extracting data from the `orders` table and filtering for records where `o_orderpriority` equals `'3-MEDIUM'`.
+
+Here's the SQL query that can be pushed down to the Postgres database:
+
+```
+-- Main query with filter pushed down to database
+SELECT
+  o_orderkey,
+  o_custkey,
+  o_orderstatus,
+  o_totalprice,
+  o_orderdate,
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM';
+
+-- Index optimization for query performance
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_orderpriority 
+ON "public".orders (o_orderpriority);
+
+-- Alternative composite index if you frequently filter by priority and need other columns
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_priority_orderkey 
+ON "public".orders (o_orderpriority, o_orderkey);
+
+-- Query plan analysis (run to verify index usage)
+EXPLAIN (ANALYZE, BUFFERS) 
+SELECT o_orderkey, o_custkey, o_orderstatus, o_totalprice, o_orderdate, 
+       o_orderpriority, o_clerk, o_shippriority, o_comment
+FROM "public".orders
+WHERE o_orderpriority = '3-MEDIUM';
+```
+
+The key optimizations:
+
+1. **Filter pushdown**: The `WHERE o_orderpriority = '3-MEDIUM'` clause is moved to the database level, reducing data transfer
+2. **Index on filter column**: Creates an index on `o_orderpriority` to speed up the WHERE clause
+3. **CONCURRENTLY option**: Allows index creation without blocking table access
+4. **Query plan verification**: Use EXPLAIN to confirm the index is being used
+
+The original ETL was doing a full table scan then filtering in the ETL tool. This optimized approach filters at the database level, transferring only the needed rows.

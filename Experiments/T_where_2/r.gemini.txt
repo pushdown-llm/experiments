@@ -1,0 +1,37 @@
+Of course. Here is the SQL query and the recommended optimization code.
+
+### SQL Query
+
+This query can be pushed down to the Postgres data source. It combines the initial data selection with the subsequent filtering step into a single, efficient operation.
+
+```sql
+SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM
+    "public".orders
+WHERE
+    o_orderdate >= '1997-01-01' AND o_orderdate < '1998-01-01';
+
+```
+
+-----
+
+### Query Optimization
+
+The provided query is already written in a **SARGable** (Search Argument Able) format, which is the most optimal form for allowing the database to use an index on the `o_orderdate` column.
+
+Since the instructions forbid modifying the source database, no further runtime optimizations can be made. However, the single most effective way to speed up this query would be to ensure an index exists on the column being filtered. If you were permitted to make changes, the following SQL command would create the necessary index.
+
+```sql
+-- This code is for optimization purposes only and should not be run
+-- if changes to the source database are prohibited.
+CREATE INDEX idx_orders_o_orderdate ON "public".orders (o_orderdate);
+```

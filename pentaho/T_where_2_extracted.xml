@@ -1,0 +1,179 @@
+<?xml version="1.0" ?>
+<transformation>
+  <order>
+    <hop>
+      <from>Table input</from>
+      <to>Rows in 1997</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Rows in 1997</from>
+      <to>Text file output</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <step>
+    <name>Rows in 1997</name>
+    <type>FilterRows</type>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+    </partitioning>
+    <send_true_to>Text file output</send_true_to>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <conditions>
+          <condition>
+            <negated>N</negated>
+            <leftvalue>o_orderdate</leftvalue>
+            <function>>=</function>
+            <value>
+              <name>constant</name>
+              <type>Date</type>
+              <text>1997/01/01 00:00:00.000</text>
+              <length>-1</length>
+              <precision>-1</precision>
+              <isnull>N</isnull>
+              <mask>yyyy/MM/dd HH:mm:ss</mask>
+            </value>
+          </condition>
+          <condition>
+            <negated>N</negated>
+            <operator>AND</operator>
+            <leftvalue>o_orderdate</leftvalue>
+            <function><=</function>
+            <value>
+              <name>constant</name>
+              <type>Date</type>
+              <text>1997/12/31 23:59:59.000</text>
+              <length>-1</length>
+              <precision>-1</precision>
+              <isnull>N</isnull>
+              <mask>yyyy/MM/dd HH:mm:ss</mask>
+            </value>
+          </condition>
+        </conditions>
+      </condition>
+    </compare>
+  </step>
+  <step>
+    <name>Table input</name>
+    <type>TableInput</type>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+    </partitioning>
+    <connection>localhost - tpch</connection>
+    <sql>SELECT
+  o_orderkey
+, o_custkey
+, o_orderstatus
+, o_totalprice
+, o_orderdate
+, o_orderpriority
+, o_clerk
+, o_shippriority
+, o_comment
+FROM "public".orders
+</sql>
+    <limit>0</limit>
+    <execute_each_row>N</execute_each_row>
+    <variables_active>N</variables_active>
+    <lazy_conversion_active>N</lazy_conversion_active>
+    <cached_row_meta_active>N</cached_row_meta_active>
+    <row-meta>
+      <value-meta>
+        <type>Integer</type>
+        <name>o_orderkey</name>
+        <length>9</length>
+        <precision>0</precision>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <name>o_custkey</name>
+        <length>9</length>
+        <precision>0</precision>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <name>o_orderstatus</name>
+        <length>1</length>
+        <precision>-1</precision>
+      </value-meta>
+      <value-meta>
+        <type>Number</type>
+        <name>o_totalprice</name>
+        <length>15</length>
+        <precision>2</precision>
+      </value-meta>
+      <value-meta>
+        <type>Date</type>
+        <name>o_orderdate</name>
+        <length>-1</length>
+        <precision>-1</precision>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <name>o_orderpriority</name>
+        <length>15</length>
+        <precision>-1</precision>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <name>o_clerk</name>
+        <length>15</length>
+        <precision>-1</precision>
+      </value-meta>
+      <value-meta>
+        <type>Integer</type>
+        <name>o_shippriority</name>
+        <length>9</length>
+        <precision>0</precision>
+      </value-meta>
+      <value-meta>
+        <type>String</type>
+        <name>o_comment</name>
+        <length>79</length>
+        <precision>-1</precision>
+      </value-meta>
+    </row-meta>
+  </step>
+  <step>
+    <name>Text file output</name>
+    <type>TextFileOutput</type>
+    <distribute>Y</distribute>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+    </partitioning>
+    <separator>;</separator>
+    <enclosure>"</enclosure>
+    <enclosure_forced>N</enclosure_forced>
+    <enclosure_fix_disabled>N</enclosure_fix_disabled>
+    <header>Y</header>
+    <footer>N</footer>
+    <format>DOS</format>
+    <compression>None</compression>
+    <encoding>windows-1250</encoding>
+    <fileNameInField>N</fileNameInField>
+    <create_parent_folder>Y</create_parent_folder>
+    <file>
+      <name>${Internal.Entry.Current.Directory}/output/T_where_2</name>
+      <servlet_output>N</servlet_output>
+      <do_not_open_new_file_init>N</do_not_open_new_file_init>
+      <extention>txt</extention>
+      <append>N</append>
+      <split>N</split>
+      <haspartno>N</haspartno>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <SpecifyFormat>N</SpecifyFormat>
+      <add_to_result_filenames>Y</add_to_result_filenames>
+      <pad>N</pad>
+      <fast_dump>N</fast_dump>
+    </file>
+  </step>
+</transformation>
