@@ -1,10 +1,5 @@
-Here’s the equivalent **pushdown SQL query** for your ETL transformation, along with recommended SQL-only optimizations:
-
----
-
-### ✅ **Pushdown SQL Query**
-
 ```sql
+-- Pushdown SQL query with filter
 SELECT
   o_orderkey,
   o_custkey,
@@ -15,66 +10,10 @@ SELECT
   o_clerk,
   o_shippriority,
   o_comment
-FROM
-  public.orders
-WHERE
-  o_orderpriority = '3-MEDIUM       ';
+FROM public.orders
+WHERE o_orderpriority = '3-MEDIUM';
+
+-- Optimization: create an index to speed up the filter
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority
+  ON public.orders (o_orderpriority);
 ```
-
----
-
-### ✅ **SQL Optimizations**
-
-1. **Use `TRIM` if trailing spaces are not required:**
-
-   ```sql
-   SELECT
-     o_orderkey,
-     o_custkey,
-     o_orderstatus,
-     o_totalprice,
-     o_orderdate,
-     o_orderpriority,
-     o_clerk,
-     o_shippriority,
-     o_comment
-   FROM
-     public.orders
-   WHERE
-     TRIM(o_orderpriority) = '3-MEDIUM';
-   ```
-
-   This avoids mismatches due to padding.
-
----
-
-2. **Add an `ORDER BY` if you want stable output:**
-
-   ```sql
-   ORDER BY o_orderkey;
-   ```
-
-   *(optional)*
-
----
-
-3. **Consider using a `LIMIT` if not all rows are needed:**
-
-   ```sql
-   LIMIT 1000;
-   ```
-
----
-
-4. **Create a temporary index for filtering (run before the query):**
-
-   ```sql
-   CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_orderpriority
-   ON public.orders (o_orderpriority);
-   ```
-
-   This speeds up the `WHERE` filter without changing the base table permanently.
-
----
-
-**Use the final pushdown query in your ETL tool instead of loading the full table.** ✅

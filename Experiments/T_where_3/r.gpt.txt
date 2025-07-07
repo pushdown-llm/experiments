@@ -1,0 +1,22 @@
+```sql
+-- Pushdown SQL query with index optimization
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority ON public.orders (o_orderpriority);
+
+COPY (
+  SELECT
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+  FROM public.orders
+  WHERE o_orderpriority LIKE '%LOW%'
+) TO '/tmp/T_where_3.txt'
+WITH (FORMAT csv, DELIMITER ';', HEADER, ENCODING 'WIN1250', QUOTE '"');
+```
+
+Create an index on `o_orderpriority` to speed up the `LIKE` filter.

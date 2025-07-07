@@ -1,0 +1,24 @@
+Based on the ETL transformation, here's the optimized SQL query that pushes down the filtering to the data source:
+
+```
+-- Create index for optimization
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_orderpriority_like 
+ON public.orders USING btree (o_orderpriority text_pattern_ops)
+WHERE o_orderpriority LIKE '%LOW%';
+
+-- Optimized query with pushed-down filter
+SELECT 
+    o_orderkey,
+    o_custkey,
+    o_orderstatus,
+    o_totalprice,
+    o_orderdate,
+    o_orderpriority,
+    o_clerk,
+    o_shippriority,
+    o_comment
+FROM public.orders
+WHERE o_orderpriority LIKE '%LOW%';
+```
+
+The query pushes the LIKE filter directly to PostgreSQL, eliminating the need to transfer all rows for client-side filtering. The partial index with text_pattern_ops operator class optimizes LIKE operations containing the 'LOW' substring pattern.

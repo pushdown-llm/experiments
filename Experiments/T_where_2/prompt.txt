@@ -1,4 +1,4 @@
-Given this ETL transformation, please provide an SQL query that can be pushed down to the data source. The source is a Postgres database. Additionally please provide code for any optimizations needed to speed up query execution. Do not change database settings in the data source or original tables. Do not use other languages than SQL. Limit explainations.
+Given this ETL transformation, please provide an SQL query that can be pushed down to the data source. Also please provide any optimization code needed to speed up the query execution. Do not generate alternative or optional solutions. Pick one, the most efficient and provide ready to execute code snippet. The datasource is a PostgreSQL database. Do not change the original datasource or database settings. You can create new objects. Do not use other languages than SQL. Your explainations cannot be longer than one sentence. 
 
 <?xml version="1.0" ?>
 <transformation>

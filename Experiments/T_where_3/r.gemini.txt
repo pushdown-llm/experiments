@@ -1,0 +1,36 @@
+Of course. Here are the SQL query and the necessary optimization code.
+
+This first block contains the commands to create a trigram index, which will significantly speed up the pattern-matching query.
+
+```
+-- This command enables the pg_trgm extension, which provides functions and operators 
+-- for determining the similarity of text based on trigram matching.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- This command creates a GIN (Generalized Inverted Index) on the o_orderpriority column 
+-- using trigram operations, which is highly effective for accelerating LIKE queries with leading wildcards.
+CREATE INDEX IF NOT EXISTS idx_gin_orders_orderpriority ON public.orders USING gin (o_orderpriority gin_trgm_ops);
+```
+
+This second block contains the final, pushed-down SQL query that incorporates the filter directly, allowing the database to use the newly created index for efficient execution.
+
+```
+-- This query selects all specified columns from the orders table where the o_orderpriority 
+-- column contains the substring 'LOW', leveraging the database for filtering.
+SELECT
+  o_orderkey,
+  o_custkey,
+  o_orderstatus,
+  o_totalprice,
+  o_orderdate,
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM
+  "public".orders
+WHERE
+  o_orderpriority LIKE '%LOW%';
+```
+
+I have provided the SQL code to create the necessary index for optimization and the final query to be executed against the database. These scripts are ready to run on your PostgreSQL data source.

@@ -1,5 +1,5 @@
-GPT-4o          https://chatgpt.com/s/t_686adbf871a0819186388279aea354d8
+GPT-4o          https://chatgpt.com/share/686c298a-5208-8011-b401-934314c7c18e
 DeepSeek-V3     NULL
-Gemini 2.5 Pro  https://g.co/gemini/share/0076b44c47cb
-Claude Sonnet 4 https://claude.ai/public/artifacts/dc55e50f-6152-4388-88e2-2da0d0c0b07e
+Gemini 2.5 Pro  https://g.co/gemini/share/ced3850e3812
+Claude Sonnet 4 https://claude.ai/public/artifacts/d144a7c4-2d25-4974-8405-3ac7ac002cf4
 

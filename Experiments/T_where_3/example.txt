@@ -1,0 +1,9 @@
+SELECT *
+FROM orders
+WHERE o_orderpriority LIKE '%LOW%'
+
+
+////////// EXECUTION PLAN:
+
+Seq Scan on orders  (cost=0.00..44875.00 rows=300450 width=107)
+  Filter: (o_orderpriority ~~ '%LOW%'::text)

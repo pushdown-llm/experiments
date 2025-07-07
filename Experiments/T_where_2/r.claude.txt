@@ -1,5 +1,10 @@
+Looking at this ETL transformation, it reads from the orders table and filters rows where o_orderdate is within the year 1997.Optimized SQL Query with IndexCode
+
 ```
--- Main query with pushdown filter
+-- Create index for optimization
+CREATE INDEX CONCURRENTLY idx_orders_orderdate ON public.orders (o_orderdate);
+
+-- Main query that replaces the ETL transformation
 SELECT
   o_orderkey,
   o_custkey,
@@ -10,37 +15,9 @@ SELECT
   o_clerk,
   o_shippriority,
   o_comment
-FROM "public".orders
-WHERE o_orderdate >= '1997-01-01'::date
-  AND o_orderdate <= '1997-12-31'::date;
-
--- Optimization: Create index on o_orderdate for faster filtering
-CREATE INDEX CONCURRENTLY idx_orders_orderdate ON "public".orders (o_orderdate);
-
--- Alternative optimization: Composite index if other columns are frequently filtered
-CREATE INDEX CONCURRENTLY idx_orders_orderdate_status ON "public".orders (o_orderdate, o_orderstatus);
-
--- Query execution plan analysis
-EXPLAIN (ANALYZE, BUFFERS) 
-SELECT
-  o_orderkey,
-  o_custkey,
-  o_orderstatus,
-  o_totalprice,
-  o_orderdate,
-  o_orderpriority,
-  o_clerk,
-  o_shippriority,
-  o_comment
-FROM "public".orders
-WHERE o_orderdate >= '1997-01-01'::date
-  AND o_orderdate <= '1997-12-31'::date;
+FROM public.orders
+WHERE o_orderdate >= '1997-01-01'::date 
+  AND o_orderdate < '1998-01-01'::date;
 ```
-The ETL transformation filters orders from 1997. The optimized SQL query pushes the date filter directly to the database source. Key optimizations:
-
-1. **Index on o_orderdate**: Primary optimization for date range filtering
-2. **CONCURRENTLY**: Creates index without blocking table operations  
-3. **Composite index option**: If filtering by multiple columns frequently
-4. **EXPLAIN ANALYZE**: Verify index usage and performance
-
-The query replaces the ETL's FilterRows step with a WHERE clause, reducing data transfer and processing overhead.
+  
+The index on o_orderdate enables efficient range scans for the date filter, and using < '1998-01-01' instead of <= '1997-12-31 23:59:59' avoids timestamp precision issues while maintaining the same logic.

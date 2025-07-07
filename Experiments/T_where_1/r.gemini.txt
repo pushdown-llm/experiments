@@ -1,8 +1,8 @@
-### SQL Query
+Of course. Here is the SQL query that pushes the transformation logic down to the database, along with the necessary optimization code.
 
-This query combines the data selection and filtering steps into a single operation that can be executed directly by the Postgres database. Using `TRIM` makes the comparison robust against trailing whitespace.
-
-```sql
+```
+-- SQL Query Pushdown
+-- This query combines the data selection and filtering steps into a single operation executed directly by the database.
 SELECT
     o_orderkey,
     o_custkey,
@@ -16,16 +16,11 @@ SELECT
 FROM
     "public".orders
 WHERE
-    TRIM(o_orderpriority) = '3-MEDIUM';
+    o_orderpriority = '3-MEDIUM      ';
 
+-- Query Optimization
+-- Creating an index on the filtered column allows the database to locate the required data much faster, avoiding a full table scan.
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority ON "public".orders (o_orderpriority);
 ```
 
------
-
-### Query Optimization
-
-To accelerate the query, you can create an index on the filtered column. Since the query uses the `TRIM` function, a function-based index is required for the database to use it effectively. This does not modify the original table data or structure.
-
-```sql
-CREATE INDEX idx_orders_o_orderpriority_trimmed ON "public".orders (TRIM(o_orderpriority));
-```
+I have provided the combined SELECT query that performs the filtering directly in the database and a CREATE INDEX statement to ensure the query executes efficiently.
