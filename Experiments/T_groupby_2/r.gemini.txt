@@ -1,0 +1,33 @@
+Of course. Here is the SQL query that pushes the transformation logic down to the database, along with the necessary optimization code.
+
+This single query performs the grouping and aggregation directly in the database, which is significantly more efficient than processing it in an external tool.
+
+```
+/* This query pushes the entire transformation logic down to the PostgreSQL database.
+  It groups by customer and order status, calculates the sum of the total price for each group,
+  and orders the results as specified in the ETL process.
+*/
+SELECT
+    o_custkey,
+    o_orderstatus,
+    SUM(o_totalprice) AS "Total price"
+FROM
+    "public".orders
+GROUP BY
+    o_custkey,
+    o_orderstatus
+ORDER BY
+    o_custkey,
+    o_orderstatus;
+
+/*
+  This optimization creates a composite index on the columns used for grouping and sorting.
+  This index allows PostgreSQL to find and process the required data much faster,
+  avoiding a full table scan and an explicit sort operation.
+  The IF NOT EXISTS clause prevents an error if the index already exists.
+*/
+CREATE INDEX IF NOT EXISTS idx_orders_custkey_status 
+ON "public".orders (o_custkey, o_orderstatus);
+```
+
+I have provided the SQL query that replicates your ETL logic and an accompanying CREATE INDEX statement to ensure its efficient execution on the PostgreSQL database.

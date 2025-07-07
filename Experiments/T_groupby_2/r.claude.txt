@@ -1,0 +1,17 @@
+Looking at this ETL transformation, it reads from the orders table, sorts by customer key and order status, then groups by those same fields while summing the total price.
+
+```
+-- Create composite index for optimization
+CREATE INDEX CONCURRENTLY idx_orders_custkey_orderstatus ON public.orders (o_custkey, o_orderstatus);
+
+-- Main query that replaces the ETL transformation
+SELECT 
+    o_custkey,
+    o_orderstatus,
+    SUM(o_totalprice) AS "Total price"
+FROM public.orders
+GROUP BY o_custkey, o_orderstatus
+ORDER BY o_custkey, o_orderstatus;
+```
+
+The composite index on (o_custkey, o_orderstatus) eliminates the need for explicit sorting since PostgreSQL can use the index for both grouping and ordering operations in a single pass.

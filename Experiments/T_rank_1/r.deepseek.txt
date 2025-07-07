@@ -1,0 +1,43 @@
+Here's the most efficient SQL query to push down to PostgreSQL, implementing the entire ETL logic in a single query:
+
+```sql
+WITH customer_orders AS (
+    SELECT 
+        c.c_nationkey,
+        c.c_custkey,
+        SUM(o.o_totalprice) AS total_price
+    FROM 
+        customer c
+    JOIN 
+        orders o ON c.c_custkey = o.o_custkey
+    GROUP BY 
+        c.c_nationkey, c.c_custkey
+),
+ranked_customers AS (
+    SELECT 
+        c_nationkey,
+        c_custkey,
+        total_price,
+        ROW_NUMBER() OVER (PARTITION BY c_nationkey ORDER BY total_price DESC) AS customer_position
+    FROM 
+        customer_orders
+)
+SELECT 
+    n.n_name,
+    rc.customer_position,
+    rc.c_custkey,
+    rc.total_price AS "Total price"
+FROM 
+    ranked_customers rc
+JOIN 
+    nation n ON rc.c_nationkey = n.n_nationkey
+WHERE 
+    rc.customer_position <= 3
+ORDER BY 
+    n.n_name, rc.customer_position;
+```
+
+Optimization recommendations:
+1. Create indexes on join and filter columns: `CREATE INDEX idx_customer_custkey ON customer(c_custkey); CREATE INDEX idx_orders_custkey ON orders(o_custkey); CREATE INDEX idx_nation_nationkey ON nation(n_nationkey);`
+2. For large tables, consider adding: `CREATE INDEX idx_customer_nationkey ON customer(c_nationkey);`
+3. Analyze tables after index creation: `ANALYZE customer; ANALYZE orders; ANALYZE nation;`

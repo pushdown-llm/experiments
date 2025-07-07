@@ -1,0 +1,18 @@
+SELECT o_custkey, o_orderstatus, sum(o_totalprice) as "Total price"
+FROM orders
+GROUP BY o_custkey, o_orderstatus
+ORDER BY o_custkey, o_orderstatus
+
+
+////////// EXECUTION PLAN:
+
+  Finalize GroupAggregate  (cost=99953.05..139830.50 rows=150000 width=38)  
+    Group Key: o_custkey, o_orderstatus  
+    ->  Gather Merge  (cost=99953.05..134955.50 rows=300000 width=38)  
+          Workers Planned: 2  
+          ->  Sort  (cost=98953.03..99328.03 rows=150000 width=38)  
+                Sort Key: o_custkey, o_orderstatus  
+                ->  Partial HashAggregate  (cost=73976.56..81955.08 rows=150000 width=38)  
+                      Group Key: o_custkey, o_orderstatus  
+                      Planned Partitions: 8  
+                      ->  Parallel Seq Scan on orders  (cost=0.00..32375.00 rows=625000 width=14)  

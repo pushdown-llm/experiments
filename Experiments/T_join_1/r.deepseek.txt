@@ -1,0 +1,16 @@
+Here's the most efficient SQL query to push down to PostgreSQL, combining all transformation steps into a single query:
+
+```sql
+SELECT o.*, c.*
+FROM "public".orders o
+JOIN "public".customer c ON o.o_custkey = c.c_custkey
+WHERE c.c_nationkey = 10
+ORDER BY o.o_custkey, c.c_custkey;
+```
+
+To optimize execution, create these indexes if they don't exist:
+
+```sql
+CREATE INDEX IF NOT EXISTS idx_customer_custkey_nationkey ON "public".customer(c_custkey, c_nationkey);
+CREATE INDEX IF NOT EXISTS idx_orders_custkey ON "public".orders(o_custkey);
+```

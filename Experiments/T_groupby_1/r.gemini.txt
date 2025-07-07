@@ -1,0 +1,21 @@
+Of course. I can provide an optimized SQL query that replicates the logic from your ETL transformation.
+
+This document contains the SQL code to create an index for optimization and the final query to be executed against your PostgreSQL database.
+
+```
+-- Optimization: Create an index on the grouping column to accelerate data retrieval and sorting.
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority ON public.orders (o_orderpriority);
+
+-- ETL Pushdown Query: This query groups by order priority and counts the orders for each priority, pushing the entire transformation down to the database.
+SELECT
+  o_orderpriority,
+  COUNT(o_orderkey) AS "Count"
+FROM
+  public.orders
+GROUP BY
+  o_orderpriority
+ORDER BY
+  o_orderpriority;
+```
+
+I have provided a single SQL query that performs the grouping and aggregation, along with a CREATE INDEX statement to ensure the query executes efficiently on the server.

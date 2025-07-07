@@ -1,0 +1,19 @@
+Here's the most efficient SQL query to push down to PostgreSQL, combining all transformations into a single query:
+
+```sql
+CREATE MATERIALIZED VIEW IF NOT EXISTS orders_priority_count AS
+SELECT 
+    o_orderpriority,
+    COUNT(o_orderkey) AS order_count
+FROM 
+    public.orders
+GROUP BY 
+    o_orderpriority
+ORDER BY 
+    o_orderpriority ASC;
+
+-- To refresh the materialized view when needed:
+-- REFRESH MATERIALIZED VIEW orders_priority_count;
+```
+
+This query combines the table input, sorting, and grouping operations into a single efficient materialized view that can be queried directly. The materialized view will persist the results for faster subsequent access.

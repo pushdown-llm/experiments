@@ -1,0 +1,38 @@
+Of course. Here is the SQL query that corresponds to the ETL transformation, which finds the top three customers by total order value for each nation.
+
+To optimize the query's execution, creating indexes on the foreign key columns used in the joins will significantly speed up performance.
+
+```
+/*
+ This query consolidates the ETL steps into a single database operation.
+ It joins customer, orders, and nation tables, calculates the total sum of
+ prices for each customer, and then uses a window function to rank customers
+ within each nation to find the top 3.
+*/
+WITH ranked_customers AS (
+  SELECT
+    c.c_custkey,
+    n.n_name,
+    SUM(o.o_totalprice) AS total_price,
+    RANK() OVER (PARTITION BY n.n_name ORDER BY SUM(o.o_totalprice) DESC) AS customer_position
+  FROM
+    public.orders AS o
+    JOIN public.customer AS c ON o.o_custkey = c.c_custkey
+    JOIN public.nation AS n ON c.c_nationkey = n.n_nationkey
+  GROUP BY
+    n.n_name,
+    c.c_custkey
+)
+SELECT
+  n_name,
+  customer_position,
+  c_custkey,
+  total_price
+FROM
+  ranked_customers
+WHERE
+  customer_position <= 3
+ORDER BY
+  n_name,
+  customer_position;
+```

@@ -1,0 +1,23 @@
+Here's the most efficient SQL query to push down to PostgreSQL, combining all transformation steps into a single query:
+
+```sql
+CREATE TEMPORARY TABLE grouped_orders AS
+SELECT 
+    o_custkey,
+    o_orderstatus,
+    SUM(o_totalprice) AS total_price
+FROM 
+    public.orders
+GROUP BY 
+    o_custkey, o_orderstatus
+ORDER BY 
+    o_custkey, o_orderstatus;
+```
+
+For optimization, create an index to speed up the grouping and sorting:
+
+```sql
+CREATE INDEX idx_orders_grouping ON public.orders (o_custkey, o_orderstatus) INCLUDE (o_totalprice);
+```
+
+The index supports both the GROUP BY and ORDER BY operations while including the aggregated column.

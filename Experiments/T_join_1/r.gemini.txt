@@ -1,0 +1,50 @@
+Of course. I can provide you with an optimized SQL query that pushes the transformation logic down to the PostgreSQL database.
+
+Here is a ready-to-execute code snippet that includes the necessary optimizations and the final query.
+
+```
+-- SQL Query for ETL Pushdown and Optimization
+
+-- Step 1: Create indexes to optimize the join and filter operations.
+-- This index speeds up filtering on the customer's nation.
+CREATE INDEX IF NOT EXISTS idx_customer_nationkey ON public.customer (c_nationkey);
+
+-- This index speeds up the join operation on the customer key.
+CREATE INDEX IF NOT EXISTS idx_customer_custkey ON public.customer (c_custkey);
+
+-- This index speeds up the join operation on the order's customer key.
+CREATE INDEX IF NOT EXISTS idx_orders_custkey ON public.orders (o_custkey);
+
+
+-- Step 2: Execute the consolidated and optimized query.
+-- This single query performs the join and filter operations directly in the database.
+SELECT
+    -- Columns from the 'orders' table
+    o.o_orderkey,
+    o.o_custkey,
+    o.o_orderstatus,
+    o.o_totalprice,
+    o.o_orderdate,
+    o.o_orderpriority,
+    o.o_clerk,
+    o.o_shippriority,
+    o.o_comment AS o_comment,
+
+    -- Columns from the 'customer' table
+    c.c_custkey,
+    c.c_name,
+    c.c_address,
+    c.c_nationkey,
+    c.c_phone,
+    c.c_acctbal,
+    c.c_mktsegment,
+    c.c_comment AS c_comment
+FROM
+    public.orders AS o
+INNER JOIN
+    public.customer AS c ON o.o_custkey = c.c_custkey
+WHERE
+    c.c_nationkey = 10;
+```
+
+I have provided the SQL to create indexes which will significantly speed up query execution. The final SELECT statement combines all the transformation steps into a single query for the database to execute efficiently.

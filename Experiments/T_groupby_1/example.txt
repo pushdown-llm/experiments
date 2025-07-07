@@ -1,0 +1,17 @@
+SELECT o_orderpriority, count(o_orderkey) as Count
+FROM orders
+GROUP BY o_orderpriority
+ORDER BY o_orderpriority
+
+
+////////// EXECUTION PLAN:
+
+  Finalize GroupAggregate  (cost=36500.13..36501.40 rows=5 width=24)  
+    Group Key: o_orderpriority  
+    ->  Gather Merge  (cost=36500.13..36501.30 rows=10 width=24)  
+          Workers Planned: 2  
+          ->  Sort  (cost=35500.11..35500.12 rows=5 width=24)  
+                Sort Key: o_orderpriority  
+                ->  Partial HashAggregate  (cost=35500.00..35500.05 rows=5 width=24)  
+                      Group Key: o_orderpriority  
+                      ->  Parallel Seq Scan on orders  (cost=0.00..32375.00 rows=625000 width=20)  

@@ -1,0 +1,35 @@
+```sql
+-- Final pushdown SQL for PostgreSQL with indexes for performance
+-- Explanation: Joins, aggregates, window rank, filter, and final select are all pushed down.
+
+-- Create indexes to optimize joins and sorts
+CREATE INDEX IF NOT EXISTS idx_orders_custkey ON public.orders (o_custkey);
+CREATE INDEX IF NOT EXISTS idx_customer_custkey ON public.customer (c_custkey);
+CREATE INDEX IF NOT EXISTS idx_customer_nationkey ON public.customer (c_nationkey);
+CREATE INDEX IF NOT EXISTS idx_nation_nationkey ON public.nation (n_nationkey);
+
+-- Main query
+SELECT
+  n.n_name,
+  ranked.customer_position,
+  ranked.o_custkey,
+  ranked.total_price
+FROM (
+  SELECT
+    c.c_nationkey,
+    o.o_custkey,
+    SUM(o.o_totalprice) AS total_price,
+    ROW_NUMBER() OVER (
+      PARTITION BY c.c_nationkey
+      ORDER BY SUM(o.o_totalprice) DESC
+    ) AS customer_position
+  FROM
+    public.orders o
+    INNER JOIN public.customer c ON o.o_custkey = c.c_custkey
+  GROUP BY
+    c.c_nationkey,
+    o.o_custkey
+) AS ranked
+INNER JOIN public.nation n ON ranked.c_nationkey = n.n_nationkey
+WHERE ranked.customer_position <= 3;
+```

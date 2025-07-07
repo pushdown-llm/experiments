@@ -1,0 +1,19 @@
+```sql
+-- Pushdown SQL for PostgreSQL
+CREATE MATERIALIZED VIEW mv_orders_grouped_sorted AS
+SELECT 
+  o_orderpriority,
+  COUNT(*) AS order_count
+FROM 
+  public.orders
+GROUP BY 
+  o_orderpriority
+ORDER BY 
+  o_orderpriority;
+
+-- Create index to speed up ORDER BY
+CREATE INDEX idx_mv_orders_grouped_sorted_orderpriority
+ON mv_orders_grouped_sorted (o_orderpriority);
+```
+
+Explanation: This query groups and sorts directly in the source and materializes it for fast export.

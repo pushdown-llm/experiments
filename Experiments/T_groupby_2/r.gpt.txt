@@ -1,0 +1,21 @@
+```sql
+-- Pushed-down query with sorting and aggregation in PostgreSQL
+CREATE MATERIALIZED VIEW mv_orders_grouped AS
+SELECT
+  o_custkey,
+  o_orderstatus,
+  SUM(o_totalprice) AS total_price
+FROM
+  public.orders
+GROUP BY
+  o_custkey,
+  o_orderstatus
+ORDER BY
+  o_custkey ASC,
+  o_orderstatus ASC;
+
+-- Optimization: create index to speed up refresh and query
+CREATE INDEX idx_mv_orders_grouped ON mv_orders_grouped (o_custkey, o_orderstatus);
+```
+
+**Explanation:** This pushes the full sort and group by to the database and creates a materialized view with an index for faster reads.

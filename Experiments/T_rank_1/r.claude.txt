@@ -1,0 +1,39 @@
+Looking at this ETL transformation, I can see it's finding the top 3 customers by total order value within each nation. Here's the optimized SQL query:
+
+```
+-- Create indexes for optimal performance
+CREATE INDEX IF NOT EXISTS idx_orders_custkey ON public.orders(o_custkey);
+CREATE INDEX IF NOT EXISTS idx_customer_custkey ON public.customer(c_custkey);
+CREATE INDEX IF NOT EXISTS idx_customer_nationkey ON public.customer(c_nationkey);
+CREATE INDEX IF NOT EXISTS idx_nation_nationkey ON public.nation(n_nationkey);
+
+-- Main query: Top 3 customers by total order value per nation
+WITH customer_totals AS (
+    SELECT 
+        c.c_nationkey,
+        o.o_custkey,
+        SUM(o.o_totalprice) as total_price
+    FROM public.orders o
+    INNER JOIN public.customer c ON o.o_custkey = c.c_custkey
+    GROUP BY c.c_nationkey, o.o_custkey
+),
+ranked_customers AS (
+    SELECT 
+        c_nationkey,
+        o_custkey,
+        total_price,
+        ROW_NUMBER() OVER (PARTITION BY c_nationkey ORDER BY total_price DESC) as customer_position
+    FROM customer_totals
+)
+SELECT 
+    n.n_name,
+    rc.customer_position,
+    rc.o_custkey,
+    rc.total_price
+FROM ranked_customers rc
+INNER JOIN public.nation n ON rc.c_nationkey = n.n_nationkey
+WHERE rc.customer_position <= 3
+ORDER BY rc.c_nationkey, rc.customer_position;
+```
+
+This SQL query replaces the complex ETL transformation with a single optimized query that uses window functions for ranking. The indexes on join columns will significantly speed up the joins and grouping operations by enabling index-based lookups instead of full table scans.

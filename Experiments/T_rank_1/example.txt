@@ -1,0 +1,43 @@
+SELECT 
+	n_name, 
+	customer_position,
+	o_custkey, 
+	total_price
+FROM (
+	SELECT 
+		n_name, 
+		RANK() OVER (PARTITION BY n_name ORDER BY SUM(o_totalprice) DESC) as customer_position, 
+		o_custkey, 
+		SUM(o_totalprice) as total_price
+	FROM orders 
+		JOIN customer ON o_custkey = c_custkey
+		JOIN nation ON c_nationkey = n_nationkey
+	GROUP BY n_name, o_custkey
+) ranked_customers
+WHERE customer_position <= 3
+ORDER BY n_name, customer_position
+
+////////// EXECUTION PLAN:
+
+Incremental Sort  (cost=38299.01..700232.17 rows=1500000 width=148)
+  Sort Key: nation.n_name, (rank() OVER (?))
+  Presorted Key: nation.n_name
+  ->  WindowAgg  (cost=35066.95..584933.11 rows=1500000 width=148)
+        Run Condition: (rank() OVER (?) <= 3)
+        ->  Incremental Sort  (cost=35066.59..558683.11 rows=1500000 width=140)
+              Sort Key: nation.n_name, (sum(orders.o_totalprice)) DESC
+              Presorted Key: nation.n_name
+              ->  GroupAggregate  (cost=14030.50..313175.05 rows=1500000 width=140)
+                    Group Key: nation.n_name, orders.o_custkey
+                    ->  Nested Loop  (cost=14030.50..283175.05 rows=1500000 width=116)
+                          ->  Gather Merge  (cost=14030.08..31500.05 rows=150000 width=108)
+                                Workers Planned: 2
+                                ->  Sort  (cost=13030.05..13186.30 rows=62500 width=108)
+                                      Sort Key: nation.n_name, customer.c_custkey
+                                      ->  Hash Join  (cost=1.56..4418.44 rows=62500 width=108)
+                                            Hash Cond: (customer.c_nationkey = nation.n_nationkey)
+                                            ->  Parallel Seq Scan on customer  (cost=0.00..4225.00 rows=62500 width=8)
+                                            ->  Hash  (cost=1.25..1.25 rows=25 width=108)
+                                                  ->  Seq Scan on nation  (cost=0.00..1.25 rows=25 width=108)
+                          ->  Index Scan using idx_orders_custkey on orders  (cost=0.43..1.50 rows=18 width=12)
+                                Index Cond: (o_custkey = customer.c_custkey)

@@ -1,0 +1,22 @@
+Looking at this ETL transformation, it reads from the orders table, sorts by order priority, then groups by order priority to count orders.
+
+Here's the optimized SQL query that pushes down the entire transformation:
+
+```
+-- Main query with pushdown optimization
+SELECT 
+    o_orderpriority,
+    COUNT(o_orderkey) AS count_o_orderkey
+FROM "public".orders
+GROUP BY o_orderpriority
+ORDER BY o_orderpriority;
+
+-- Optimization: Create index for performance
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_orders_orderpriority 
+ON "public".orders (o_orderpriority);
+
+-- Optional: Update table statistics for better query planning
+ANALYZE "public".orders;
+```
+
+The SQL query eliminates the intermediate sort step since PostgreSQL can optimize GROUP BY with ORDER BY, and the index on o_orderpriority will speed up both grouping and sorting operations.

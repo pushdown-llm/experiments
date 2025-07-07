@@ -1,0 +1,33 @@
+Looking at this ETL transformation, it performs an inner join between orders and customer tables filtered by `c_nationkey = 10`. Here's the optimized SQL query:
+
+```
+-- Create composite index for optimization
+CREATE INDEX CONCURRENTLY idx_customer_nationkey_custkey 
+ON public.customer (c_nationkey, c_custkey) 
+WHERE c_nationkey = 10;
+
+-- Main query - pushdown equivalent of the ETL transformation
+SELECT 
+    o.o_orderkey,
+    o.o_custkey,
+    o.o_orderstatus,
+    o.o_totalprice,
+    o.o_orderdate,
+    o.o_orderpriority,
+    o.o_clerk,
+    o.o_shippriority,
+    o.o_comment,
+    c.c_custkey,
+    c.c_name,
+    c.c_address,
+    c.c_nationkey,
+    c.c_phone,
+    c.c_acctbal,
+    c.c_mktsegment,
+    c.c_comment
+FROM public.orders o
+INNER JOIN public.customer c ON o.o_custkey = c.c_custkey
+WHERE c.c_nationkey = 10;
+```
+
+The partial index on `(c_nationkey, c_custkey)` with condition `c_nationkey = 10` optimizes the filtered join by reducing index size and enabling efficient customer lookups.
