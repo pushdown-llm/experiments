@@ -2,8 +2,25 @@ SELECT *
 FROM orders
 WHERE o_orderpriority LIKE '%LOW%'
 
-
 ////////// EXECUTION PLAN:
 
 Seq Scan on orders  (cost=0.00..44875.00 rows=300450 width=107)
   Filter: (o_orderpriority ~~ '%LOW%'::text)
+
+
+  ----------------------------------------------------------------------
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_gin_orders_orderpriority_casted
+  ON public.orders USING gin ((o_orderpriority::text) gin_trgm_ops);
+
+EXPLAIN SELECT *
+  FROM orders
+  WHERE o_orderpriority::text LIKE '%LOW%';
+
+////////// EXECUTION PLAN:
+
+"Bitmap Heap Scan on orders  (cost=500.91..27525.91 rows=60000 width=107)"
+"  Recheck Cond: ((o_orderpriority)::text ~~ '%LOW%'::text)"
+"  ->  Bitmap Index Scan on idx_gin_orders_orderpriority_casted  (cost=0.00..485.91 rows=60000 width=0)"
+"        Index Cond: ((o_orderpriority)::text ~~ '%LOW%'::text)"

@@ -1,3 +1,5 @@
+CREATE INDEX IF NOT EXISTS idx_orders_orderpriority ON public.orders(o_orderpriority);
+
 SELECT *
   FROM orders
   WHERE o_orderpriority = '3-MEDIUM ';
@@ -5,5 +7,7 @@ SELECT *
 
 ////////// EXECUTION PLAN:
 
-Seq Scan on orders  (cost=0.00..44886.00 rows=293600 width=107)
-  Filter: (o_orderpriority = '3-MEDIUM       '::bpchar)
+Bitmap Heap Scan on orders  (cost=3422.11..33362.74 rows=305250 width=107)
+  Recheck Cond: (o_orderpriority = '3-MEDIUM'::bpchar)
+  ->  Bitmap Index Scan on idx_orders_orderpriority  (cost=0.00..3345.80 rows=305250 width=0)
+        Index Cond: (o_orderpriority = '3-MEDIUM'::bpchar)

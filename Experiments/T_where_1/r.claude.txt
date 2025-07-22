@@ -12,5 +12,12 @@ SELECT
   o_orderstatus,
   o_totalprice,
   o_orderdate,
-  o_orderpriThe index on o_orderpriority will dramatically improve query performance by allowing PostgreSQL to quickly locate matching records instead of scanning the entire table.
-  ```
+  o_orderpriority,
+  o_clerk,
+  o_shippriority,
+  o_comment
+FROM public.orders
+WHERE o_orderpriority = '3-MEDIUM';
+```
+  
+The index on o_orderpriority will dramatically improve query performance by allowing PostgreSQL to quickly locate matching records instead of scanning the entire table.
