@@ -1,18 +1,23 @@
-SELECT o_custkey, o_orderstatus, sum(o_totalprice) as "Total price"
-FROM orders
+
+CREATE INDEX idx_orders_custkey_orderstatus 
+ ON public.orders (o_custkey, o_orderstatus) INCLUDE (o_totalprice); 
+
+CREATE MATERIALIZED VIEW mv_t_groupby_2 AS 
+SELECT 
+    o_custkey,
+    o_orderstatus,
+    SUM(o_totalprice) AS "Total price"
+FROM public.orders
 GROUP BY o_custkey, o_orderstatus
-ORDER BY o_custkey, o_orderstatus
+ORDER BY o_custkey, o_orderstatus;
+
+SELECT * FROM mv_t_groupby_2;
 
 
 ////////// EXECUTION PLAN:
 
-  Finalize GroupAggregate  (cost=99953.05..139830.50 rows=150000 width=38)  
-    Group Key: o_custkey, o_orderstatus  
-    ->  Gather Merge  (cost=99953.05..134955.50 rows=300000 width=38)  
-          Workers Planned: 2  
-          ->  Sort  (cost=98953.03..99328.03 rows=150000 width=38)  
-                Sort Key: o_custkey, o_orderstatus  
-                ->  Partial HashAggregate  (cost=73976.56..81955.08 rows=150000 width=38)  
-                      Group Key: o_custkey, o_orderstatus  
-                      Planned Partitions: 8  
-                      ->  Parallel Seq Scan on orders  (cost=0.00..32375.00 rows=625000 width=14)  
+"GroupAggregate  (cost=0.43..58737.43 rows=150000 width=38)"
+"  Group Key: o_custkey, o_orderstatus"
+"  ->  Index Only Scan using idx_orders_custkey_orderstatus on orders  (cost=0.43..45612.43 rows=1500000 width=14)"
+
+"Seq Scan on mv_t_groupby_2  (cost=0.00..2726.40 rows=144640 width=44)"
